@@ -10,6 +10,13 @@ function setCanvasSize(gameCanvas) {
 //endregion
 
 //region create entities
+function createScore() {
+    return {
+        playerLeftScore: 0,
+        playerRightScore: 0
+    }
+}
+
 function createBall(gameCanvas) {
     let height = Math.floor(gameCanvas.height * 0.05);
     let width = height;
@@ -26,6 +33,40 @@ function createBall(gameCanvas) {
         dx: dx,
         dy: dy,
         color: "burlywood"
+    }
+}
+
+function createLeftRacket(gameCanvas) {
+    let height = Math.floor(gameCanvas.height * 0.2);
+    let width = Math.floor(gameCanvas.width * 0.02);
+    let x = 10;
+    let y = Math.floor(gameCanvas.height / 2 - height / 2);
+    let dy = Math.floor(height * 0.15);
+
+    return {
+        x: x,
+        y: y,
+        width: width,
+        height: height,
+        dy: dy,
+        color: "blue"
+    }
+}
+
+function createRightRacket(gameCanvas) {
+    let height = Math.floor(gameCanvas.height * 0.2);
+    let width = Math.floor(gameCanvas.width * 0.02);
+    let x = gameCanvas.width - width - 10;
+    let y = Math.floor(gameCanvas.height / 2 - height / 2);
+    let dy = Math.floor(height * 0.15);
+
+    return {
+        x: x,
+        y: y,
+        width: width,
+        height: height,
+        dy: dy,
+        color: "red"
     }
 }
 
@@ -52,6 +93,31 @@ function drawBall(gameCanvas, ball) {
     canvasContext.closePath();
 }
 
+function drawRacket(gameCanvas, racket) {
+    const canvasContext = gameCanvas.getContext("2d");
+
+    canvasContext.beginPath();
+    canvasContext.rect(racket.x, racket.y, racket.width, racket.height);
+    canvasContext.fillStyle = racket.color;
+    canvasContext.fill();
+    canvasContext.closePath();
+}
+
+function drawScore(gameCanvas, score) {
+    const canvasContext = gameCanvas.getContext("2d");
+
+    canvasContext.beginPath();
+    canvasContext.fillStyle = "#FACE8D";
+    let fontSize = Math.floor(gameCanvas.height * 0.05);
+    canvasContext.font = `italic ${fontSize}pt Arial`;
+
+    let margitTop = Math.floor(gameCanvas.height * 0.1);
+    let marginLeft = Math.floor(gameCanvas.width * 0.1);
+
+    canvasContext.fillText(`Счёт игры ${score.playerLeftScore}:${score.playerRightScore}`, gameCanvas.width / 2 - marginLeft, margitTop);
+    canvasContext.closePath();
+}
+
 
 function moveBall(gameCanvas, ball) {
     ball.x += ball.dx;
@@ -66,14 +132,57 @@ function moveBall(gameCanvas, ball) {
     }
 }
 
-function gameLoop(gameCanvas, ball) {
+function moveRacket(gameCanvas, key, keyUP, keyDOWN, racket) {
+    if (key === keyUP && racket.y > 0) {
+        racket.y -= racket.dy;
+        if (racket.y < 0) {
+            racket.y = 0;
+        }
+    } else if (key === keyDOWN && racket.y + racket.height < gameCanvas.height) {
+        racket.y += racket.dy;
+        if (racket.y + racket.height > gameCanvas.height) {
+            racket.y = gameCanvas.height - racket.height;
+        }
+    }
+}
+
+function ballCollisionWithLeftRacket(ball, leftRacket) {
+
+}
+
+function ballCollisionWithRightRacket(ball, rightRacket) {
+
+}
+
+function ballCollisionWithLeftWall(gameCanvas, ball, score) {
+
+}
+
+function ballCollisionWithRightWall(gameCanvas, ball, score) {
+
+}
+
+
+function gameLoop(gameCanvas, ball, leftRacket, rightRacket, score) {
     clearGameCanvas(gameCanvas);
 
     moveBall(gameCanvas, ball);
+
+    ballCollisionWithLeftRacket(ball, leftRacket);
+    ballCollisionWithRightRacket(ball, rightRacket);
+
+    ballCollisionWithLeftWall(gameCanvas, ball, score);
+    ballCollisionWithRightWall(gameCanvas, ball, score);
+
     drawBall(gameCanvas, ball);
 
+    drawRacket(gameCanvas, leftRacket);
+    drawRacket(gameCanvas, rightRacket);
+
+    drawScore(gameCanvas, score);
+
     requestAnimationFrame(function () {
-        gameLoop(gameCanvas, ball);
+        gameLoop(gameCanvas, ball, leftRacket, rightRacket, score);
     });
 }
 
@@ -84,6 +193,17 @@ const gameCanvas = document.getElementById("gameCanvas");
 setCanvasSize(gameCanvas);
 
 const ball = createBall(gameCanvas);
+const leftRacket = createLeftRacket(gameCanvas);
+const rightRacket = createRightRacket(gameCanvas);
+const score = createScore();
 
-gameLoop(gameCanvas, ball);
+document.addEventListener("keydown", function (e) {
+    if (e.code === "KeyW" || e.code === "KeyS") {
+        moveRacket(gameCanvas, e.code, "KeyW", "KeyS", leftRacket);
+    } else if (e.code === "ArrowUp" || e.code === "ArrowDown") {
+        moveRacket(gameCanvas, e.code, "ArrowUp", "ArrowDown", rightRacket);
+    }
+});
+
+gameLoop(gameCanvas, ball, leftRacket, rightRacket, score);
 //endregion
