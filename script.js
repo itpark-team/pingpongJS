@@ -127,9 +127,9 @@ function moveBall(gameCanvas, ball) {
         ball.dy = -ball.dy;
     }
 
-    if (ball.x + ball.width >= gameCanvas.width || ball.x <= 0) {
-        ball.dx = -ball.dx;
-    }
+    // if (ball.x + ball.width >= gameCanvas.width || ball.x <= 0) {
+    //     ball.dx = -ball.dx;
+    // }
 }
 
 function moveRacket(gameCanvas, key, keyUP, keyDOWN, racket) {
@@ -147,21 +147,50 @@ function moveRacket(gameCanvas, key, keyUP, keyDOWN, racket) {
 }
 
 function ballCollisionWithLeftRacket(ball, leftRacket) {
-
+    if (ball.x <= leftRacket.x + leftRacket.width &&
+        ball.y + ball.height >= leftRacket.y &&
+        ball.y <= leftRacket.y + leftRacket.height) {
+        ball.dx = -ball.dx;
+        ball.x = leftRacket.x + leftRacket.width + 1;
+    }
 }
 
 function ballCollisionWithRightRacket(ball, rightRacket) {
-
+    if (ball.x + ball.width >= rightRacket.x &&
+        ball.y + ball.height >= rightRacket.y &&
+        ball.y <= rightRacket.y + rightRacket.height) {
+        ball.dx = -ball.dx;
+        ball.x = rightRacket.x - ball.width - 1;
+    }
 }
 
 function ballCollisionWithLeftWall(gameCanvas, ball, score) {
-
+    if (ball.x <= 0) {
+        score.playerRightScore++;
+        ball.x = Math.floor(gameCanvas.width / 2 - ball.width / 2);
+        ball.y = Math.floor(gameCanvas.height / 2 - ball.height / 2);
+        ball.dx = -ball.dx;
+    }
 }
 
 function ballCollisionWithRightWall(gameCanvas, ball, score) {
-
+    if (ball.x + ball.width >= gameCanvas.width) {
+        score.playerLeftScore++;
+        ball.x = Math.floor(gameCanvas.width / 2 - ball.width / 2);
+        ball.y = Math.floor(gameCanvas.height / 2 - ball.height / 2);
+        ball.dx = -ball.dx;
+    }
 }
 
+function whoWin(score) {
+    if (score.playerLeftScore === 10) {
+        return "Левый игрок";
+    }
+    if (score.playerRightScore === 10) {
+        return "Правый игрок";
+    }
+    return "none";
+}
 
 function gameLoop(gameCanvas, ball, leftRacket, rightRacket, score) {
     clearGameCanvas(gameCanvas);
@@ -181,9 +210,15 @@ function gameLoop(gameCanvas, ball, leftRacket, rightRacket, score) {
 
     drawScore(gameCanvas, score);
 
-    requestAnimationFrame(function () {
-        gameLoop(gameCanvas, ball, leftRacket, rightRacket, score);
-    });
+    const winner = whoWin(score);
+
+    if (winner === "none") {
+        requestAnimationFrame(function () {
+            gameLoop(gameCanvas, ball, leftRacket, rightRacket, score);
+        });
+    } else {
+        alert(`Победил ${winner}! Для перезапуска игры обновите страницу`);
+    }
 }
 
 //endregion
